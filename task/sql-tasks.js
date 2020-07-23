@@ -65,7 +65,7 @@ async function task_1_2(db) {
 async function task_1_3(db) {
     let result = await db.query(`
     SELECT CustomerID as CustomerId, CompanyName 
-    FROM northwind.customers
+    FROM northwind.Customers
     WHERE Country LIKE "USA"
         AND Fax IS NULL;
     `);
@@ -86,8 +86,8 @@ async function task_1_4(db) {
     SELECT 
         CustomerID as "Customer Id", 
         COUNT(OrderDate) as "Total number of Orders",
-        ROUND(COUNT(OrderDate) / (SELECT COUNT(*) FROM northwind.orders) * 100, 5) as "% of all orders"
-    FROM northwind.orders
+        ROUND(COUNT(OrderDate) / (SELECT COUNT(*) FROM northwind.Orders) * 100, 5) as "% of all orders"
+    FROM northwind.Orders
     GROUP BY CustomerID
     ORDER BY \`% of all orders\` DESC, CustomerID
     `);
@@ -104,7 +104,7 @@ async function task_1_4(db) {
 async function task_1_5(db) {
     let result = await db.query(`
     SELECT ProductID as ProductId, ProductName, QuantityPerUnit 
-    FROM northwind.products
+    FROM northwind.Products
     WHERE Substring(ProductName, 1, 1) IN ("A","B","C","D","E","F")
     ORDER BY ProductName;
     `);
@@ -124,8 +124,8 @@ async function task_1_6(db) {
     let result = await db.query(`
     SELECT ProductName, CategoryName, CompanyName as SupplierCompanyName
     FROM products 
-        INNER JOIN categories on products.CategoryID = categories.CategoryID
-        INNER JOIN suppliers on products.SupplierID = suppliers.SupplierID
+        INNER JOIN Categories on products.CategoryID = categories.CategoryID
+        INNER JOIN Suppliers on products.SupplierID = suppliers.SupplierID
     ORDER BY ProductName, SupplierCompanyName;
     `); 
     return result[0];
