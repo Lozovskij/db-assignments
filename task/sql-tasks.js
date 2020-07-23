@@ -473,7 +473,7 @@ async function task_1_22(db) {
         ) as t2 /*t2 is copy of t1*/
         ON t1.CustomerID = t2.CustomerID AND t1.PricePerItem < t2.PricePerItem 
     WHERE t2.PricePerItem IS NULL
-    GROUP BY CompanyName, ProductName /*in case there is two products with the same price*/
+    GROUP BY CompanyName, ProductName,PricePerItem /*in case there is two products with the same price*/
     ORDER BY t1.PricePerItem DESC, CompanyName, ProductName;
     `); 
     return result[0];
