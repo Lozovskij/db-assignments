@@ -124,8 +124,8 @@ async function task_1_6(db) {
     let result = await db.query(`
     SELECT ProductName, CategoryName, CompanyName as SupplierCompanyName
     FROM products 
-        INNER JOIN Categories on products.CategoryID = categories.CategoryID
-        INNER JOIN Suppliers on products.SupplierID = suppliers.SupplierID
+        INNER JOIN Categories on Products.CategoryID = Categories.CategoryID
+        INNER JOIN Suppliers on Products.SupplierID = Suppliers.SupplierID
     ORDER BY ProductName, SupplierCompanyName;
     `); 
     return result[0];
@@ -151,8 +151,8 @@ async function task_1_7(db) {
             WHEN table_1.ReportsTo IS NULL THEN "-"
             ELSE CONCAT(table_2.FirstName, ' ', table_2.LastName)
         END AS ReportsTo
-    FROM employees as table_1
-        LEFT JOIN employees as table_2 on table_1.ReportsTo = table_2.EmployeeID;
+    FROM Employees as table_1
+        LEFT JOIN Employees as table_2 on table_1.ReportsTo = table_2.EmployeeID;
     `); 
     return result[0];
 }
@@ -170,8 +170,8 @@ async function task_1_8(db) {
     SELECT 
         CategoryName, 
         COUNT(CategoryName) as TotalNumberOfProducts 
-    FROM northwind.products
-        INNER JOIN categories on products.CategoryID = categories.CategoryID
+    FROM northwind.Products
+        INNER JOIN Categories on Products.CategoryID = Categories.CategoryID
     GROUP BY CategoryName
     ORDER BY CategoryName;
     `); 
