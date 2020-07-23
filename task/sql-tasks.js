@@ -204,7 +204,7 @@ async function task_1_9(db) {
  */
 async function task_1_10(db) {
     let result = await db.query(`
-    SELECT ProductID,ProductName 
+    SELECT ProductID, ProductName 
     FROM northwind.Products
     WHERE Discontinued = 1;
     `); 
@@ -342,7 +342,7 @@ async function task_1_17(db) {
         CategoryName, 
         AVG(UnitPrice) as AvgPrice
     FROM northwind.Products
-        INNER JOIN Categories on products.CategoryID = Categories.CategoryID
+        INNER JOIN Categories on Products.CategoryID = Categories.CategoryID
     GROUP BY CategoryName
     ORDER BY AvgPrice DESC, CategoryName
     `); 
@@ -447,7 +447,7 @@ async function task_1_21(db) {
  */
 async function task_1_22(db) {
     let result = await db.query(`
-    SELECT t1.CompanyName, t1.ProductName, t1.PricePerItem as PricePerItem
+    SELECT t1.CompanyName, t1.ProductName, t1.PricePerItem
     FROM (
         SELECT 
             Customers.CompanyName as CompanyName,
