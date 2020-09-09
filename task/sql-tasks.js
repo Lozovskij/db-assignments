@@ -147,10 +147,7 @@ async function task_1_7(db) {
     SELECT 
         table_1.EmployeeID as EmployeeId, 
         CONCAT(table_1.FirstName, ' ', table_1.LastName) as FullName,
-        CASE 
-            WHEN table_1.ReportsTo IS NULL THEN "-"
-            ELSE CONCAT(table_2.FirstName, ' ', table_2.LastName)
-        END AS ReportsTo
+        IFNULL(CONCAT(table_2.FirstName, ' ', table_2.LastName), "-") AS ReportsTo
     FROM Employees as table_1
         LEFT JOIN Employees as table_2 on table_1.ReportsTo = table_2.EmployeeID;
     `); 
@@ -262,9 +259,8 @@ async function task_1_12(db) {
 async function task_1_13(db) {
     let result = await db.query(`
     SELECT
-        COUNT(Discontinued) as TotalOfCurrentProducts,
-        SUM(CASE Discontinued WHEN 1 THEN 1 ELSE 0 END) as TotalOfDiscontinuedProducts
-    FROM Products;
+        (SELECT COUNT(Discontinued) FROM Products) as TotalOfCurrentProducts,
+        (SELECT COUNT(Discontinued) FROM Products  WHERE Discontinued = 1) as TotalOfDiscontinuedProducts;
     `); 
     return result[0];
 }
@@ -294,19 +290,18 @@ async function task_1_14(db) {
 async function task_1_15(db) {
     let result = await db.query(`
     SELECT 
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 1 THEN 1 ELSE 0 END) ELSE 0 END) as January,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 2 THEN 1 ELSE 0 END) ELSE 0 END) as February,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 3 THEN 1 ELSE 0 END) ELSE 0 END) as March,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 4 THEN 1 ELSE 0 END) ELSE 0 END) as April,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 5 THEN 1 ELSE 0 END) ELSE 0 END) as May,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 6 THEN 1 ELSE 0 END) ELSE 0 END) as June,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 7 THEN 1 ELSE 0 END) ELSE 0 END) as July,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 8 THEN 1 ELSE 0 END) ELSE 0 END) as August,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 9 THEN 1 ELSE 0 END) ELSE 0 END) as September,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 10 THEN 1 ELSE 0 END) ELSE 0 END) as October,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 11 THEN 1 ELSE 0 END) ELSE 0 END) as November,
-    SUM(CASE YEAR(OrderDate) WHEN 1997 THEN (CASE month(OrderDate) WHEN 12 THEN 1 ELSE 0 END) ELSE 0 END) as December
-    FROM Orders;
+	(SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 1) as January,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 2) as February,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 3) as March,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 4) as April,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 5) as May,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 6) as June,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 7) as July,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 8) as August,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 9) as September,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 10) as October,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 11) as November,
+    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 12) as December;
     `); 
     return result[0];
 }
@@ -359,13 +354,11 @@ async function task_1_17(db) {
  */
 async function task_1_18(db) {
     let result = await db.query(`
-    SELECT * 
-    FROM (SELECT 
-            date_format(OrderDate, '%Y-%m-%d %T') as OrderDate, 
-            COUNT(OrderID) as "Total Number of Orders" 
-            FROM Orders 
-            GROUP BY OrderDate) AS T
-    WHERE YEAR(T.OrderDate) = 1998;
+    SELECT 
+        date_format(OrderDate, '%Y-%m-%d %T') as OrderDate, 
+        COUNT(OrderID) as "Total Number of Orders" 
+        FROM Orders WHERE YEAR(OrderDate) = 1998
+        GROUP BY OrderDate;
     `); 
     return result[0];
 }
@@ -447,34 +440,24 @@ async function task_1_21(db) {
  */
 async function task_1_22(db) {
     let result = await db.query(`
-    SELECT t1.CompanyName, t1.ProductName, t1.PricePerItem
-    FROM (
-        SELECT 
-            Customers.CompanyName as CompanyName,
-            Products.ProductName as ProductName,
-            OrderDetails.UnitPrice as PricePerItem,
-            Orders.CustomerID as CustomerID
-        FROM Orders
-            INNER JOIN OrderDetails on Orders.OrderID = OrderDetails.OrderID
-            INNER JOIN Customers on Orders.CustomerID = Customers.CustomerID
-            INNER JOIN Products on OrderDetails.ProductID = Products.ProductID
-        ) as t1 
-        LEFT JOIN
-        (
-        SELECT 
-            Customers.CompanyName as CompanyName,
-            Products.ProductName as ProductName,
-            OrderDetails.UnitPrice as PricePerItem,
-            Orders.CustomerID as CustomerID
-        FROM Orders
-            INNER JOIN OrderDetails on Orders.OrderID = OrderDetails.OrderID
-            INNER JOIN Customers on Orders.CustomerID = Customers.CustomerID
-            INNER JOIN Products on OrderDetails.ProductID = Products.ProductID
-        ) as t2 /*t2 is copy of t1*/
-        ON t1.CustomerID = t2.CustomerID AND t1.PricePerItem < t2.PricePerItem 
-    WHERE t2.PricePerItem IS NULL
-    GROUP BY CompanyName, ProductName,PricePerItem /*in case there is two products with the same price*/
-    ORDER BY t1.PricePerItem DESC, CompanyName, ProductName;
+    SELECT DISTINCT
+		Customers.CompanyName as CompanyName,
+		Products.ProductName as ProductName,
+		OrderDetails.UnitPrice as PricePerItem
+	FROM Orders
+		INNER JOIN OrderDetails on Orders.OrderID = OrderDetails.OrderID
+		INNER JOIN Customers on Orders.CustomerID = Customers.CustomerID
+		INNER JOIN Products on OrderDetails.ProductID = Products.ProductID
+	WHERE OrderDetails.UnitPrice = 
+    (
+		SELECT
+			MAX(OD.UnitPrice)
+		FROM Orders as O
+			INNER JOIN OrderDetails as OD on O.OrderID = OD.OrderID
+			INNER JOIN Customers as C on O.CustomerID = C.CustomerID
+		WHERE Customers.CustomerID=C.CustomerID
+	)
+	ORDER BY PricePerItem DESC, CompanyName, ProductName;
     `); 
     return result[0];
 }
