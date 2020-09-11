@@ -289,19 +289,21 @@ async function task_1_14(db) {
  */
 async function task_1_15(db) {
     let result = await db.query(`
-    SELECT 
-	(SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 1) as January,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 2) as February,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 3) as March,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 4) as April,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 5) as May,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 6) as June,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 7) as July,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 8) as August,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 9) as September,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 10) as October,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 11) as November,
-    (SELECT COUNT(OrderDate) FROM Orders WHERE YEAR(OrderDate) = 1997 AND month(OrderDate) = 12) as December;
+    SELECT
+    COUNT(CASE WHEN MONTH(OrderDate) = 1 THEN 1 ELSE NULL END) AS 'January',
+    COUNT(CASE WHEN MONTH(OrderDate) = 2 THEN 1 ELSE NULL END) AS 'February',
+    COUNT(CASE WHEN MONTH(OrderDate) = 3 THEN 1 ELSE NULL END) AS 'March',
+    COUNT(CASE WHEN MONTH(OrderDate) = 4 THEN 1 ELSE NULL END) AS 'April',
+    COUNT(CASE WHEN MONTH(OrderDate) = 5 THEN 1 ELSE NULL END) AS 'May',
+    COUNT(CASE WHEN MONTH(OrderDate) = 6 THEN 1 ELSE NULL END) AS 'June',
+    COUNT(CASE WHEN MONTH(OrderDate) = 7 THEN 1 ELSE NULL END) AS 'July',
+    COUNT(CASE WHEN MONTH(OrderDate) = 8 THEN 1 ELSE NULL END) AS 'August',
+    COUNT(CASE WHEN MONTH(OrderDate) = 9 THEN 1 ELSE NULL END) AS 'September',
+    COUNT(CASE WHEN MONTH(OrderDate) = 10 THEN 1 ELSE NULL END) AS 'October',
+    COUNT(CASE WHEN MONTH(OrderDate) = 11 THEN 1 ELSE NULL END) AS 'November',
+    COUNT(CASE WHEN MONTH(OrderDate) = 12 THEN 1 ELSE NULL END) AS 'December'
+    FROM Orders 
+    WHERE YEAR(OrderDate) = 1997;
     `); 
     return result[0];
 }
@@ -444,19 +446,21 @@ async function task_1_22(db) {
 		Customers.CompanyName as CompanyName,
 		Products.ProductName as ProductName,
 		OrderDetails.UnitPrice as PricePerItem
-	FROM Orders
-		INNER JOIN OrderDetails on Orders.OrderID = OrderDetails.OrderID
-		INNER JOIN Customers on Orders.CustomerID = Customers.CustomerID
-		INNER JOIN Products on OrderDetails.ProductID = Products.ProductID
-	WHERE OrderDetails.UnitPrice = 
-    (
-		SELECT
-			MAX(OD.UnitPrice)
-		FROM Orders as O
-			INNER JOIN OrderDetails as OD on O.OrderID = OD.OrderID
-			INNER JOIN Customers as C on O.CustomerID = C.CustomerID
-		WHERE Customers.CustomerID=C.CustomerID
-	)
+	FROM Customers 
+		RIGHT JOIN Orders on Orders.CustomerID = Customers.CustomerID
+        RIGHT JOIN OrderDetails on Orders.OrderID = OrderDetails.OrderID
+        LEFT JOIN Products on OrderDetails.ProductID = Products.ProductID
+		RIGHT JOIN 
+		(
+			SELECT
+				C.CustomerID,
+				MAX(OD.UnitPrice) as MaxPrice
+			FROM Orders as O
+				INNER JOIN OrderDetails as OD on O.OrderID = OD.OrderID
+				INNER JOIN Customers as C on O.CustomerID = C.CustomerID
+			GROUP BY C.CustomerID
+		) as T 
+		on T.MaxPrice = OrderDetails.UnitPrice AND T.CustomerID = Customers.CustomerID
 	ORDER BY PricePerItem DESC, CompanyName, ProductName;
     `); 
     return result[0];
