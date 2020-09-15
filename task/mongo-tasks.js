@@ -23,8 +23,11 @@
 async function before(db) {
     await db.collection('employees').ensureIndex({CustomerID: 1});
     await db.collection('orders').ensureIndex({OrderID: 1});
+    await db.collection('orders').ensureIndex({CustomerID: 1});
     await db.collection('customers').ensureIndex({CompanyName: 1});
+    await db.collection('customers').ensureIndex({CustomerID: 1});
     await db.collection('products').ensureIndex({ProductName: 1});
+    await db.collection('order-details').ensureIndex({OrderID: 1});
 }
 
 /**
@@ -609,17 +612,10 @@ async function task_1_17(db) {
 
 /**
  * Create a query to calcualte total orders count by each day in 1998:
-<<<<<<< HEAD
- * | OrderDate | Total Number of Orders |
- *
- * Order Date needs to be in the format '%Y-%m-%d'
- * Order by OrderDate
-=======
  * | Order Date | Total Number of Orders |
  *
  * Order Date needs to be in the format '%Y-%m-%d'
  * Order by Order Date
->>>>>>> upstream/master
  *
  * HINT: see $dateFromString, $dateToString
  *       https://docs.mongodb.com/manual/reference/operator/aggregation/dateToString/
