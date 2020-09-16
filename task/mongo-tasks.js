@@ -811,77 +811,52 @@ async function task_1_22(db) {
         },
         {
             $lookup: {
+                from: "order-details",
+                localField: "OrderID",
+                foreignField: "OrderID",
+				as: "detailsArr"
+            }
+        },
+        { 	$unwind: "$detailsArr" },
+        { 
+            $sort: { "detailsArr.UnitPrice": -1 }
+        },
+        {
+            $group: {
+                _id: "$CustomerID", 
+                firstProduct: { $first: "$detailsArr.ProductID" },
+                maxUnitPrice: { $max: "$detailsArr.UnitPrice" }
+            }
+        },
+        {
+            $lookup: {
                 from: "customers",
-                localField: "CustomerID",
+                localField: "_id",
                 foreignField: "CustomerID",
                 as: "customersArr"
             }
         },
-        {	$unwind: "$customersArr" },
-        {	
-            $project:{
-                _id: 0,
-                OrderID : 1,
-                CustomerID : "$customersArr.CustomerID",
-                CompanyName : "$customersArr.CompanyName"
-            }
-        },
-        {
-            $lookup: {
-                from: "order-details",
-                localField: "OrderID",
-                foreignField: "OrderID",
-                as: "detailsArr"
-            }
-        },
-        {	$unwind: "$detailsArr" },
-        {	
-            $project:{
-                _id: 0,
-                CustomerID : 1,
-                CompanyName : 1,
-    
-                UnitPrice : "$detailsArr.UnitPrice",
-                ProductID : "$detailsArr.ProductID"
-            }
-        },
+        { 	$unwind: "$customersArr" },
         {
             $lookup: {
                 from: "products",
-                localField: "ProductID",
+                localField: "firstProduct",
                 foreignField: "ProductID",
                 as: "productsArr"
             }
         },
-        {	$unwind: "$productsArr" },
-        {	
-            $project:{
-                _id: 0,
-                CustomerID : 1,
-                CompanyName : 1,
-                UnitPrice : 1,
-                ProductName : "$productsArr.ProductName"
-            }
-        },
-        { 	$sort: { "UnitPrice": -1 } },
-        {
-            $group: {
-                _id: "$CustomerID", 
-                firstProduct: { $first: "$ProductName" },
-                firstCompName: { $first: "$CompanyName" },
-                maxUnitPrice: { $max: "$UnitPrice" }
-            }
-        },
+        { 	$unwind: "$productsArr" },
         {
             $project: {
                 _id: 0,
                 CustomerID: "$_id",
-                CompanyName: "$firstCompName",
-                ProductName: "$firstProduct",
+                ProductName: "$productsArr.ProductName",
+                CompanyName: "$customersArr.CompanyName",
                 PricePerItem: "$maxUnitPrice"
             }
         },
-        { $sort: { PricePerItem: -1, CompanyName: 1, ProductName: 1 } }
+        { 	$sort: { PricePerItem: -1, CompanyName: 1, ProductName: 1 }}
+
     ]).toArray();
     return result;
 }
