@@ -218,12 +218,10 @@ async function task_3_1(db) {
                     pipeline: [
                     {
                         $match : {
-                            "versions.initiativeId" : ObjectId("58af4da0b310d92314627290")
-                        }
-                    },                   
-                    { 
-                        $match: {
-                            $expr: { $eq: [ "$value",  "$$opportunities_value" ] } 
+                            "$and":[
+                                {"versions.initiativeId" : ObjectId("58af4da0b310d92314627290")},
+                                {$expr: { $eq: [ "$value",  "$$opportunities_value" ] } }
+                            ]
                         }
                     }
                   ],
