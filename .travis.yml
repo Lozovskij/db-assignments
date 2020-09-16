@@ -11,6 +11,10 @@ before_install:
   - sudo systemctl enable mongod
   - sudo systemctl restart mongod
   - mongod --version
+<<<<<<< HEAD
+=======
+  - mongorestore dumps/northwind_mongodb/
+>>>>>>> dfa90404e7355c11dddb329495bf8b70fbe7c4fd
   - unzip dumps/awesomedb_mongodb/awesomedb.zip -d dumps/awesomedb_mongodb/ && ls dumps/awesomedb_mongodb/
   - rm dumps/awesomedb_mongodb/awesomedb.zip
   - mongorestore dumps/northwind_mongodb/
